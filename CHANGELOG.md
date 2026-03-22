@@ -5,11 +5,19 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/).
 
-## [3.0.0] - 2026-03-17
+## [3.0.0] - 2026-03-22
+
+### Added
+- **Gestion Multi-poules** : Support natif pour générer, diviser et répartir les joueurs sur de multiples poules simultanément.
+- **Nouvel Algorithme** : Implémentation complète de `GenerateurTournoiV3.js` avec la prise en compte des niveaux fantômes et un système de rotation des "byes" (joueurs au repos/sortants) bien plus avancé.
+- **Nouvelles Pages dédiées** : Split de l'architecture Single-Page vers un modèle multi-pages très léger (`index.html`, `tournoi.html`, `affichage.html`, `classement.html`).
 
 ### Changed
-- **Refonte majeure** : migration vers la version 3 de l'application
-- **Dépôt** : déplacé vers `tournament-BAD-v3`
+- **Refonte majeure** : Migration complète actée vers la configuration de base de la version 3 ! L'ancienne V2 est préservée momentanément dans un répertoire `/old`.
+- **Timer de Match live** : Changement du mode de rafraichissement du timer local sur le tableau projeté (plus aucun décalage de plusieurs secondes, rafraichissement quasi-synchronisé lors des ticks, suppression des clignotements HTML).
+- **Interface UI Videoprojecteur** : Redesign total de la grille des classements (médailles pour le podium, layouts CSS automatiques et responsives en flexbox) et d'affichage des "Sortants".
+- **Dépôt** : structuration modernisée du répertoire principal.
+
 
 ## [2.1.0] - 2026-01-31
 

@@ -41,9 +41,7 @@ build/
 # Project specific
 # ===================
 # Anciennes versions et fichiers de développement
-assets/js/Anciennes versions/
-assets/js/propositions AIs/
-assets/js/Autres/
+old/
 
 # Fichiers temporaires
 *.tmp

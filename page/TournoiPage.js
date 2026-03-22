@@ -347,6 +347,9 @@ class TournoiPage {
         if (!this.dom.timerDisplay) return;
         this.dom.timerDisplay.textContent = Timer.formatTime(remaining);
         
+        // Sync immediate state to projector
+        this._syncAffichage();
+        
         // Changer la couleur
         if (remaining <= 0) {
             this.dom.timerDisplay.style.color = 'red';
@@ -622,6 +625,23 @@ class TournoiPage {
         return (done / matches.length) * 100;
     }
 
+    _getLivePouleAndMatchForCourt(terrainId) {
+        for (let p of this.poules) {
+            // Est-ce que le terrain est assigné à cette poule ?
+            if (terrainId >= p.terrainStart && terrainId <= p.terrainEnd) {
+                if (!p.tours || p.tours.length === 0) continue;
+                
+                const currentTour = p.tours[p.liveRoundIndex !== undefined ? p.liveRoundIndex : p.tours.length - 1];
+                if (!currentTour || !currentTour.matchs) continue;
+                
+                // Recherche du match sur ce terrain précis
+                const match = currentTour.matchs.find(m => m.terrain === terrainId);
+                if (match) return { poule: p, match: match };
+            }
+        }
+        return null;
+    }
+    
     _getPouleAndMatchForCourt(terrainId) {
         for (let p of this.poules) {
             // Est-ce que le terrain est assigné à cette poule ?
@@ -1149,7 +1169,7 @@ class TournoiPage {
         if (!this.poules) return;
         let terrains = [];
         for (let i = 1; i <= this.terrainsCount; i++) {
-            let info = this._getPouleAndMatchForCourt(i);
+            let info = this._getLivePouleAndMatchForCourt(i);
             if (info) {
                 let e1 = info.match.equipe1.filter(Boolean);
                 let e2 = info.match.equipe2.filter(Boolean);
@@ -1171,12 +1191,11 @@ class TournoiPage {
         
         let byes = [];
         this.poules.forEach(p => {
-            let liveR = p.tours.findIndex((t, idx) => !this._isRoundFinished(p, idx));
-            if (liveR !== -1) {
-                 let tour = p.tours[liveR];
+            let targetIdx = p.liveRoundIndex !== undefined ? p.liveRoundIndex : (p.tours.length - 1);
+            if (targetIdx !== -1 && p.tours[targetIdx]) {
+                 let tour = p.tours[targetIdx];
                  let pouleByes = [];
-                 (tour.exempts || []).forEach(id => {
-                     let j = p.joueurs.find(x=>String(x.id)===String(id));
+                 (tour.byes || []).forEach(j => {
                      if(j) pouleByes.push(j.prenom + " " + (j.nom ? j.nom.charAt(0)+'.' : ''));
                  });
                  if (pouleByes.length > 0) {
@@ -1186,9 +1205,12 @@ class TournoiPage {
         });
 
         let timerData = null;
-        const displayEl = document.getElementById('timer-display');
-        if (displayEl) {
-            timerData = { display: displayEl.textContent };
+        if (this.timer) {
+            timerData = {
+                display: Timer.formatTime(this.timer.getRemaining()),
+                running: this.timer.getState() === 'running',
+                paused: this.timer.getState() === 'paused'
+            };
         }
 
         const data = {

@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../assets/images/favicon.ico">
     <title>Tournoi Badminton V3 - Classement et Répartition</title>
-    <link rel="stylesheet" href="css/generique.css">
-    <link rel="stylesheet" href="css/AccueilPage.css">
-    <link rel="stylesheet" href="css/ClassementPage.css">
+    <link rel="stylesheet" href="../css/generique.css">
+    <link rel="stylesheet" href="../css/AccueilPage.css">
+    <link rel="stylesheet" href="../css/ClassementPage.css">
 </head>
 <body>
 
 <div id="app"></div>
 
-<script src="ext/xlsx.full.min.js"></script>
-<script src="db/baseDB.js"></script>
-<script src="db/TournoiDB.js"></script>
-<script src="utils/GenerateurTournoiV3.js"></script>
+<script src="../ext/xlsx.full.min.js"></script>
+<script src="../db/baseDB.js"></script>
+<script src="../db/TournoiDB.js"></script>
+<script src="../utils/GenerateurTournoiV3.js"></script>
 <!-- On importe la logique de la page -->
-<script src="page/ClassementPage.js"></script>
+<script src="../page/ClassementPage.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         const db = new TournoiDB();

@@ -21,7 +21,7 @@ class AffichagePage {
                     this.renderContent();
                 }
             }
-        }, 1000);
+        }, 150);
 
         this.updateRealViewportHeight();
         window.addEventListener('resize', () => this.updateRealViewportHeight());
@@ -55,8 +55,11 @@ class AffichagePage {
         container.innerHTML = `
             <div class="header-bar">
                 <h1 id="aff-title">En attente de connexion...</h1>
-                <div>
-                   <span id="aff-timer" style="margin-right:20px; font-weight:bold; font-size:2.5vh; color:#e74c3c;"></span>
+                <div style="display: flex; align-items: center;">
+                   <div id="aff-timer-container" style="margin-right:20px; font-weight:bold; font-size:4.5rem; display: flex; align-items: center; transition: all 0.3s ease;">
+                       <span id="aff-timer-icon" style="margin-right:15px; font-size: 3rem; color: var(--text-color);"></span>
+                       <span id="aff-timer" style="color:var(--text-color); letter-spacing: 2px; font-family: monospace;">00:00</span>
+                   </div>
                    <button class="btn-theme" id="btn-toggle-theme">🎨 Inverser Thème</button>
                 </div>
             </div>
@@ -79,35 +82,50 @@ class AffichagePage {
         if (this.data.timer) {
             timerEl.textContent = this.data.timer.display;
             if (this.data.timer.running) {
-                timerIconEl.textContent = "▶️";
+                timerIconEl.textContent = "▶";
                 timerIconEl.style.color = "#2ecc71";
                 timerEl.style.color = "#2ecc71";
-                timerEl.parentElement.style.borderColor = "#2ecc71";
             } else if (this.data.timer.paused) {
-                timerIconEl.textContent = "⏸️";
+                timerIconEl.textContent = "⏸";
                 timerIconEl.style.color = "#f1c40f";
                 timerEl.style.color = "#f1c40f";
-                timerEl.parentElement.style.borderColor = "#f1c40f";
             } else {
-                timerIconEl.textContent = "⏹️";
-                timerIconEl.style.color = "#e74c3c";
-                timerEl.style.color = "#e74c3c";
-                timerEl.parentElement.style.borderColor = "#e74c3c";
+                timerIconEl.textContent = "⏹";
+                timerIconEl.style.color = "var(--text-color, #7f8c8d)";
+                timerEl.style.color = "var(--text-color, #7f8c8d)";
             }
         } else {
             timerEl.textContent = "00:00";
-            timerIconEl.textContent = "⏹️";
+            timerIconEl.textContent = "⏹";
+            timerIconEl.style.color = "var(--text-color, #7f8c8d)";
+            timerEl.style.color = "var(--text-color, #7f8c8d)";
         }
 
+        // --- Optimisation : On ne reconstruit le DOM (matchs, byes, classements) que s'il a changé
+        const structData = { ...this.data };
+        delete structData.timer;
+        delete structData.timestamp;
+        const currentHash = JSON.stringify(structData);
+        
+        if (this._lastStructHash === currentHash) {
+            return; // Seul le timer a été mis à jour
+        }
+        this._lastStructHash = currentHash;
+
+        const timerContainer = this.container.querySelector('#aff-timer-container');
+
         if (this.data.mode === 'tournoi') {
+            if(timerContainer) timerContainer.style.display = 'flex';
             titleEl.textContent = "🔥 Matchs en cours";
             contentEl.innerHTML = this.buildTournoiHTML();
         } 
         else if (this.data.mode === 'classement-bloc1') {
-            titleEl.textContent = "🏅 Classement Général (Phase 1)";
+            if(timerContainer) timerContainer.style.display = 'none';
+            titleEl.textContent = "🏅 Classement Général";
             contentEl.innerHTML = this.buildClassementBloc1HTML();
         }
         else if (this.data.mode === 'classement-bloc2') {
+            if(timerContainer) timerContainer.style.display = 'none';
             titleEl.textContent = "🔄 Nouvelles Poules de Répartition";
             contentEl.innerHTML = this.buildClassementBloc2HTML();
         }
@@ -145,10 +163,21 @@ class AffichagePage {
         // Byes / Sortants
         let byes = this.data.byes || [];
         html += `
-            <div class="byes-area">
+            <div class="byes-area" style="width: 100%;">
                 <div class="byes-title">🛋 Joueurs au repos / Sortants</div>
-                <div class="byes-list">
-                    ${byes.map(b => `<div class="bye-badge">\${b}</div>`).join('')}
+                <div class="byes-list" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; width: 100%;">
+                    ${byes.map(b => {
+                        if (typeof b === 'object' && b.poule) {
+                            return `
+                            <div class="poule-byes" style="flex: 1; background: var(--surface-color); border: 2px solid var(--poule-${b.color}); border-radius: var(--radius-md); padding: 5px 10px; min-width: 150px; max-width: 100%;">
+                                <div style="font-weight: bold; color: var(--poule-${b.color}); border-bottom: 1px solid var(--border-color); margin-bottom: 5px; text-align: center;">${b.poule}</div>
+                                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">
+                                    ${b.joueurs.map(j => `<div class="bye-badge" style="background: var(--bg-color); color: var(--text-color); margin: 0; padding: 4px 8px; border-radius: 4px; text-align: center; white-space: nowrap;">${j}</div>`).join('')}
+                                </div>
+                            </div>`;
+                        }
+                        return `<div class="bye-badge" style="background: var(--primary-color);">${b}</div>`;
+                    }).join('')}
                     ${byes.length === 0 ? '<span style="color:#7f8c8d; font-style:italic;">Aucun joueur en attente</span>' : ''}
                 </div>
             </div>
@@ -158,7 +187,7 @@ class AffichagePage {
     }
 
     buildClassementBloc1HTML() {
-        let html = '<div class="classement-area">';
+        let html = '<div class="classement-area" style="width: 100%; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-start;">';
         let poules = this.data.poulesInit || [];
         let joueurs = this.data.joueurs || [];
 
@@ -173,21 +202,34 @@ class AffichagePage {
             });
 
             html += `
-                <div class="poule-classement-box">
+                <div class="poule-classement-box" style="flex: 1 1 0; min-width: 300px;">
                     <div class="poule-classement-title">${poule.nom}</div>
-                    <table class="table-stats">
+                    <table class="table-stats" style="width: 100%; white-space: nowrap; line-height: 1.4; font-size: 1.1em;">
                         <thead>
-                            <tr><th>R</th><th>Joueur</th><th>Pts/M</th><th>V/N/D</th></tr>
+                            <tr>
+                                <th style="width: 1%;">R</th>
+                                <th>Joueur</th>
+                                <th style="width: 1%;">Pts/M</th>
+                                <th style="width: 1%;">V/N/D</th>
+                            </tr>
                         </thead>
                         <tbody>
-                            ${jPoule.map((j, idx) => `
-                                <tr>
-                                    <td>${idx+1}</td>
+                            ${jPoule.map((j, idx) => {
+                                let rankDisplay = idx + 1;
+                                let styleClass = "";
+                                if (idx === 0) { rankDisplay = "🥇"; styleClass = "font-weight: bold; font-size: 1.15em;"; }
+                                else if (idx === 1) { rankDisplay = "🥈"; styleClass = "font-weight: bold; font-size: 1.1em;"; }
+                                else if (idx === 2) { rankDisplay = "🥉"; styleClass = "font-weight: bold; font-size: 1.05em;"; }
+                                
+                                return `
+                                <tr style="${styleClass}">
+                                    <td style="text-align: center;">${rankDisplay}</td>
                                     <td class="text-left">${j.prenom} ${(j.nom||'').charAt(0)}.</td>
-                                    <td>${Number(j.ratioPoints).toFixed(2)}</td>
-                                    <td><span style="color:#2ecc71">${j.victoires}</span> - <span style="color:#e74c3c">${j.defaites}</span></td>
+                                    <td style="text-align: center;">${Number(j.ratioPoints).toFixed(2)}</td>
+                                    <td style="text-align: center;"><span style="color:#2ecc71">${j.victoires}</span> - <span style="color:#e74c3c">${j.defaites}</span></td>
                                 </tr>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -198,18 +240,19 @@ class AffichagePage {
     }
 
     buildClassementBloc2HTML() {
-        let html = '<div class="classement-area">';
+        let html = '<div class="classement-area" style="width: 100%; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-start;">';
         let repartition = this.data.repartitionPoules || [];
         let noms = this.data.nomsPoules || [];
 
         repartition.forEach((pool, idx) => {
+            let sortedPool = [...pool].sort((a,b) => (a.nom || '').localeCompare(b.nom || ''));
             html += `
-                <div class="poule-classement-box">
+                <div class="poule-classement-box" style="flex: 1 1 0; min-width: 250px;">
                     <div class="poule-classement-title">${noms[idx] || 'Poule ' + (idx+1)}</div>
-                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                        ${pool.map(j => `
-                            <div class="bye-badge" style="background:#3498db; color:white;">
-                                ${j.prenom} ${(j.nom||'').charAt(0)}.
+                    <div style="display:flex; flex-wrap: wrap; justify-content: center; gap:8px;">
+                        ${sortedPool.map(j => `
+                            <div class="bye-badge" style="background:#3498db; color:white; padding: 8px 12px; border-radius: 6px; text-align: center; white-space: nowrap;">
+                                <strong style="text-transform: uppercase;">${j.nom || ''}</strong> ${j.prenom}
                             </div>
                         `).join('')}
                     </div>

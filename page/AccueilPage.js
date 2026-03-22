@@ -1108,7 +1108,7 @@ class AccueilPage {
         await db.importState(dbState);
 
         // 3. Ouvrir la nouvelle page de Tournoi dans un nouvel onglet, SANS lien de parenté (pour éviter l'erreur de sécurité file://)
-        window.open('tournoi.html', '_blank', 'noopener,noreferrer');
+        window.open('html/tournoi.html', '_blank', 'noopener,noreferrer');
     }
 }
 
