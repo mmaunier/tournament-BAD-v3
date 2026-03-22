@@ -1,6 +1,6 @@
-# Générateur de Tournois de Badminton en double V2
+# Générateur de Tournois de Badminton en double V3
 
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Application web moderne pour la gestion complète de tournois de badminton en double (ronde suisse). Conçue pour organiser des tournois de manière efficace et équitable, avec un système de handicap intégré et un affichage vidéoprojecteur.
@@ -79,7 +79,7 @@ Lorsqu'un joueur est retiré en cours de tournoi :
 ## 🏗️ Architecture
 
 ```
-tournament-BAD-v2/
+tournament-BAD-v3/
 ├── index.html          # Point d'entrée unique (SPA)
 ├── assets/
 │   ├── fonts/          # Polices locales (Inter, Poppins, Oswald)
@@ -123,8 +123,8 @@ tournament-BAD-v2/
 ## 🚀 Installation
 
 ```bash
-git clone https://github.com/mmaunier/tournament-BAD-v2
-cd tournament-BAD-v2
+git clone https://github.com/mmaunier/tournament-BAD-v3
+cd tournament-BAD-v3
 ```
 
 Aucune dépendance npm requise. L'application fonctionne directement dans le navigateur, même sans connexion internet.

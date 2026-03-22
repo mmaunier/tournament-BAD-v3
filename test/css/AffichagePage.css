@@ -1,0 +1,275 @@
+:root {
+    --bg-color: #121212;
+    --text-color: #ffffff;
+    --card-bg: #1e1e1e;
+    --card-border: #333;
+    --accent: #e67e22;
+    --team-text: #fff;
+    --poule-text: #aaa;
+    --score-color: #f1c40f;
+    --court-number: #8e44ad;
+    --real-vh: 100vh;
+}
+
+[data-theme="light"] {
+    --bg-color: #f5f6fa;
+    --text-color: #2c3e50;
+    --card-bg: #ffffff;
+    --card-border: #bdc3c7;
+    --team-text: #2c3e50;
+    --poule-text: #7f8c8d;
+    --score-color: #d35400;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    height: var(--real-vh);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px 10px 10px;
+    height: 6vh;
+    border-bottom: 2px solid var(--card-border);
+    margin-bottom: 10px;
+}
+
+.header-bar h1 {
+    margin: 0;
+    font-size: 2.5vh;
+    color: var(--accent);
+}
+
+.btn-theme {
+    background: transparent;
+    border: 1px solid var(--text-color);
+    color: var(--text-color);
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 1.5vh;
+}
+
+.content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* TOURNOI MODE */
+.tournoi-grid {
+    flex: 3;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20%, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+    min-height: 0;
+}
+
+.court-card {
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.court-card.empty_court {
+    opacity: 0.5;
+    justify-content: center;
+    align-items: center;
+}
+
+.court-header {
+    background: rgba(0,0,0,0.1);
+    background-color: var(--court-number);
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 2.5vh;
+    text-align: center;
+}
+
+.court-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    padding: 10px;
+    text-align: center;
+}
+
+.poule-name {
+    font-size: 2vh;
+    color: var(--poule-text);
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.team {
+    font-size: 3vh;
+    font-weight: bold;
+    color: var(--team-text);
+}
+
+.vs {
+    font-size: 2vh;
+    color: #666;
+    margin: 5px 0;
+}
+
+.score {
+    font-size: 4vh;
+    font-weight: bold;
+    color: var(--score-color);
+    margin-top: 10px;
+}
+
+.byes-area {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.byes-title {
+    font-size: 2.5vh;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: var(--accent);
+}
+
+.byes-list {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-content: flex-start;
+    overflow-y: auto;
+}
+
+.bye-badge {
+    background: #34495e;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 2vh;
+}
+
+[data-theme="light"] .bye-badge {
+    background: #ecf0f1;
+    color: #2c3e50;
+    border: 1px solid #bdc3c7;
+}
+
+/* CLASSEMENT MODE */
+.classement-area {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    flex-wrap: wrap;
+    overflow-y: auto;
+}
+
+.poule-classement-box {
+    flex: 1;
+    min-width: 30%;
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.poule-classement-title {
+    font-size: 3vh;
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.table-stats {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 2vh;
+}
+.table-stats th { background: rgba(0,0,0,0.2); }
+[data-theme="light"] .table-stats th { background: rgba(0,0,0,0.05); }
+
+.table-stats th, .table-stats td {
+    padding: 5px;
+    text-align: center;
+    border-bottom: 1px solid var(--card-border);
+}
+.table-stats td.text-left { text-align: left; font-weight:bold; }
+
+/* Timer Adjustments */
+.timer-container {
+    background: var(--surface-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+.timer-container .timer-display {
+    font-size: 3.5rem !important; /* Make it significantly larger */
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--primary-color);
+    letter-spacing: 2px;
+}
+.timer-status-icon {
+    font-size: 2.5rem;
+}
+.timer-status-icon.running { color: #10b981; }
+.timer-status-icon.paused { color: #f59e0b; }
+.timer-status-icon.stopped { color: #ef4444; }
+
+/* Table Compact Adjustments */
+.table-stats th, .table-stats td {
+    padding: 2px 8px !important; /* Extremely compact rows to fit more data without scrolling */
+    font-size: 0.95rem;          /* Slightly smaller font to save space */
+}
+
+/* Make sure header allows grid display properly */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: var(--surface-color);
+    border-bottom: 2px solid var(--border-color);
+}

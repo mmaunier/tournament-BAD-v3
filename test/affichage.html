@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affichage Vidéoprojecteur</title>
+    <link rel="stylesheet" href="css/generique.css">
+    <link rel="stylesheet" href="css/AffichagePage.css">
+</head>
+<body>
+
+<div id="app"></div>
+
+<script src="page/AffichagePage.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const page = new AffichagePage();
+        page.render(document.getElementById('app'));
+    });
+</script>
+</body>
+</html>

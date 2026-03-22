@@ -5,6 +5,12 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/).
 
+## [3.0.0] - 2026-03-17
+
+### Changed
+- **Refonte majeure** : migration vers la version 3 de l'application
+- **Dépôt** : déplacé vers `tournament-BAD-v3`
+
 ## [2.1.0] - 2026-01-31
 
 ### Added

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournoi Badminton V3 - En cours</title>
+    <link rel="stylesheet" href="css/generique.css">
+    <link rel="stylesheet" href="css/TournoiPage.css">
+</head>
+<body>
+
+<div id="app"></div>
+
+<script src="db/baseDB.js"></script>
+<script src="db/TournoiDB.js"></script>
+<script src="utils/Timer.js"></script>
+<script src="utils/GenerateurTournoiV3.js"></script>
+<!-- On importe la logique de la page -->
+<script src="page/TournoiPage.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const db = new TournoiDB();
+        await db.init();
+        
+        const page = new TournoiPage(db);
+        page.render(document.getElementById('app'));
+    });
+</script>
+</body>
+</html>

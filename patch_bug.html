@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.dnd-zone { width: 200px; min-height: 200px; border: 1px solid black; float:left; padding: 10px; margin: 10px; }
+.joueur-badge { border: 1px dashed red; padding: 5px; margin: 5px; cursor: move; }
+.dragging { opacity: 0.5; }
+</style>
+</head>
+<body>
+<div class="dnd-zone" id="z1">
+  <div class="joueur-badge" draggable="true" data-id="1">Joueur 1</div>
+  <div class="joueur-badge" draggable="true" data-id="2">Joueur 2</div>
+</div>
+<div class="dnd-zone" id="z2">
+</div>
+<script>
+    const draggables = document.querySelectorAll('.joueur-badge');
+    const zones = document.querySelectorAll('.dnd-zone');
+
+    draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', (e) => {
+            draggable.classList.add('dragging');
+            if(e.dataTransfer) {
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", draggable.getAttribute('data-id'));
+            }
+        });
+        draggable.addEventListener('dragend', () => {
+            draggable.classList.remove('dragging');
+        });
+    });
+
+    zones.forEach(zone => {
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            const draggable = document.querySelector('.dragging');
+            if (draggable) zone.appendChild(draggable);
+        });
+        // We probably need this? Or not?
+    });
+</script>
+</body>
+</html>

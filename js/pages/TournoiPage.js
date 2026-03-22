@@ -1005,6 +1005,12 @@ class TournoiPage {
             (match.equipe2 || []).forEach(j => j && joueursEnMatch.add(j.id));
         });
         const joueursAttente = (this.joueursActifs || []).filter(j => !joueursEnMatch.has(j.id));
+        // Inject poule name into joueurs attente (v3 structure)
+        joueursAttente.forEach(j => {
+            if (!j.poule) {
+                j.poule = this.tournoi && this.tournoi.nom ? this.tournoi.nom : 'Tournoi';
+            }
+        });
         
         // Récupérer les données existantes
         let data = {};

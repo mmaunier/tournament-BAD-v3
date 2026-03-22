@@ -446,3 +446,14 @@ body:has(.page-affichage) #app {
         font-size: 2rem;
     }
 }
+
+/* BIG TIMER */
+.timer-card-time {
+    font-size: 4.5rem !important;
+    font-weight: 800 !important;
+}
+
+.table-classement td, .table-classement th {
+    padding: 2px 5px !important;
+    font-size: 0.9em;
+}

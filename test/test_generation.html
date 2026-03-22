@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Génération Rotations V3</title>
+    <style>
+        body { font-family: monospace; background: #1e1e2e; color: #cdd6f4; padding: 2rem; }
+        h1   { color: #89b4fa; }
+        .toolbar { display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        label    { color: #a6e3a1; }
+        input[type=file] { color: #cdd6f4; }
+        button   { background: #89b4fa; color: #1e1e2e; border: none; padding: .5rem 1.2rem;
+                   border-radius: .4rem; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        button:hover { background: #74c7ec; }
+        .cfg { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .cfg label { color: #fab387; }
+        .cfg input[type=number] { width: 5rem; background: #313244; color: #cdd6f4;
+                                  border: 1px solid #585b70; border-radius: .3rem; padding: .2rem .4rem; }
+        #output { background: #181825; border: 1px solid #45475a; border-radius: .5rem;
+                  padding: 1.5rem; white-space: pre; overflow: auto; max-height: 70vh;
+                  font-size: .85rem; line-height: 1.5; }
+        .ok  { color: #a6e3a1; }
+        .err { color: #f38ba8; }
+        .warn { color: #fab387; }
+        .info { color: #89dceb; }
+    </style>
+</head>
+<body>
+
+<h1>🏸 Test Génération Rotations — V3</h1>
+
+<div class="toolbar">
+    <div>
+        <label for="xlsxInput">Fichier XLSX : </label>
+        <input type="file" id="xlsxInput" accept=".xlsx,.xls">
+    </div>
+    <button onclick="lancer()">▶ Générer &amp; Afficher résumé</button>
+</div>
+
+<div class="cfg">
+    <label>Tours :
+        <input type="number" id="cfgTours" value="10" min="1" max="50">
+    </label>
+    <label>Terrains :
+        <input type="number" id="cfgTerrains" value="7" min="1" max="20">
+    </label>
+    <label>1er terrain n° :
+        <input type="number" id="cfgPremier" value="1" min="1" max="99">
+    </label>
+</div>
+
+<br>
+<div id="output">En attente du fichier XLSX…
+
+Chargez <strong>poule_unique.xlsx</strong> (ou tout autre fichier de poule) puis cliquez sur "Générer".</div>
+
+<!-- Dépendances -->
+<script src="ext/xlsx.full.min.js"></script>
+<script src="db/baseDB.js"></script>
+<script src="utils/GenerateurTournoiV3.js"></script>
+
+<script>
+// Redirige console.log / warn / error dans la div #output
+(function () {
+    const out = document.getElementById('output');
+    const orig = { log: console.log, warn: console.warn, error: console.error };
+
+    function append(cls, args) {
+        const line = document.createElement('span');
+        line.className = cls;
+        line.textContent = args.map(a =>
+            (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a))
+        ).join(' ') + '\n';
+        out.appendChild(line);
+        out.scrollTop = out.scrollHeight;
+    }
+
+    console.log   = (...a) => { orig.log(...a);   append('ok',   a); };
+    console.warn  = (...a) => { orig.warn(...a);  append('warn', a); };
+    console.error = (...a) => { orig.error(...a); append('err',  a); };
+})();
+
+async function lancer() {
+    const out = document.getElementById('output');
+    out.innerHTML = '';
+
+    const file = document.getElementById('xlsxInput').files[0];
+    if (!file) {
+        console.error('Aucun fichier sélectionné.');
+        return;
+    }
+
+    const nbTours    = parseInt(document.getElementById('cfgTours').value,    10) || 10;
+    const nbTerrains = parseInt(document.getElementById('cfgTerrains').value, 10) || 7;
+    const premierT   = parseInt(document.getElementById('cfgPremier').value,  10) || 1;
+
+    try {
+        // ── Lecture XLSX ─────────────────────────────────────────────────────────
+        const data     = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheets   = workbook.SheetNames;
+
+        if (!sheets.length) {
+            console.error('Le fichier ne contient aucune feuille.');
+            return;
+        }
+
+        console.log(`Fichier : ${file.name}`);
+        console.log(`Feuille(s) détectée(s) : ${sheets.join(', ')}`);
+        console.log('');
+
+        // ── Phase 1 : Lecture de toutes les poules ───────────────────────────────
+        const poules = [];
+        for (const sheetName of sheets) {
+            const sheet = workbook.Sheets[sheetName];
+            if (!sheet) continue;
+
+            const rows    = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            const joueurs = rows
+                .slice(1)
+                .filter(r => r && r.length && r[1])  // Ignorer lignes vides / sans nom
+                .map((row, i) => {
+                    const j = Joueur.fromXLSXRow(row);
+                    j.id = i;   // Index = identifiant local pour le générateur
+                    return j;
+                });
+
+            if (joueurs.length === 0) {
+                console.warn(`Feuille "${sheetName}" : aucun joueur trouvé, ignorée.`);
+                continue;
+            }
+
+            poules.push({ nom: sheetName, joueurs });
+        }
+
+        if (poules.length === 0) {
+            console.error('Aucune poule valide trouvée dans le fichier.');
+            return;
+        }
+
+        // ── Phase 2 : Validation — toutes les poules doivent avoir ≥ 4 joueurs ──
+        const poulesFautives = poules.filter(p => p.joueurs.length < 4);
+        if (poulesFautives.length > 0) {
+            console.error('⛔ Génération impossible : toutes les poules doivent avoir au moins 4 joueurs.');
+            console.error('Poule(s) fautive(s) :');
+            for (const p of poulesFautives) {
+                console.error(`  • ${p.nom} : ${p.joueurs.length} joueur(s)`);
+            }
+            return;
+        }
+
+        console.log(`${poules.length} poule(s) valide(s) — lancement de la génération…`);
+        console.log('');
+
+        // ── Phase 3 : Génération de chaque tournoi (1 poule = 1 tournoi) ─────────
+        const resultats = [];
+        for (const poule of poules) {
+            console.log(`━━━ Poule : ${poule.nom} — ${poule.joueurs.length} joueur(s) ━━━`);
+
+            const gen = new GenerateurTournoiV3({
+                joueurs: poule.joueurs,
+                nbTours,
+                nbTerrains,
+                premierTerrain: premierT
+            });
+
+            gen.afficherResume();
+            resultats.push({ nom: poule.nom, gen });
+            console.log('');
+        }
+
+        // ── Phase 4 : Récap. comparatif multi-poules ─────────────────────────────
+        if (resultats.length > 1) {
+            console.log('╔' + '═'.repeat(58) + '╗');
+            console.log('║   RÉCAPITULATIF MULTI-POULES' + ' '.repeat(30) + '║');
+            console.log('╚' + '═'.repeat(58) + '╝');
+            for (const r of resultats) {
+                const s = r.gen.stats;
+                const valide = r.gen._gen.estValide() ? '✓ valide' : '✗ NON valide';
+                console.log(`▸ ${r.nom} (${r.gen.joueurs.length}J / ${r.gen.tours.length}T) : ` +
+                    `byes=${s.byeMin}-${s.byeMax}, consécutifs=${s.byesConsecutifs}, ` +
+                    `max partner=${s.maxPartenaire}, max adv=${s.maxAdversaire} → ${valide}`);
+            }
+            console.log('');
+        }
+
+    } catch (err) {
+        console.error('Erreur :', err.message || err);
+    }
+}
+</script>
+
+</body>
+</html>
