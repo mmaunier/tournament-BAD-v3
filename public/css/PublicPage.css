@@ -1,0 +1,117 @@
+/* Styles pour la zone publique */
+
+.public-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.public-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+
+.public-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+/* Grille des matchs (Responsive pour mobile) */
+.match-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.match-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.match-card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.badge {
+    background: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.badge-tour {
+    background: #6c757d;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.match-card-body {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+.match-card-body .vs {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.btn-saisir {
+    width: 100%;
+}
+
+/* Modal Score UI */
+.score-inputs {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    margin: 20px 0;
+}
+
+.equipe-score {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 40%;
+}
+
+.equipe-score label {
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    min-height: 40px; /* Pour aligner avec les sauts de lignes */
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.equipe-score input[type="number"] {
+    font-size: 2rem;
+    text-align: center;
+    padding: 10px;
+}
+
+.vs-text {
+    font-size: 2rem;
+    font-weight: bold;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 12px; /* Pour l'aligner avec le centre des inputs */
+}

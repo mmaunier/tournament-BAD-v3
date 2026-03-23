@@ -9,6 +9,13 @@ class TournoiPage {
         this.terrainsCount = 0;
         setInterval(() => this._syncAffichage(), 1000);
         
+        if (window.io) {
+            const socket = io();
+            socket.on('data_updated', () => this.syncFromRemote(true));
+        } else {
+            setInterval(() => this.syncFromRemote(true), 5000); // Auto-sync fallback
+        }
+        
         // États pour la pop-up de score
         this.editingMatch = null;
         this.editingPoule = null;
@@ -107,6 +114,7 @@ class TournoiPage {
                 <button class="btn-timer btn-settings" id="btn-timer-settings" title="Paramètres"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
             <div class="header-actions">
+                <button class="btn-action" style="background:#27ae60" id="btn-sync-scores">🔄 Actualiser (Scores Publics)</button>
                 <button class="btn-action" style="background:#f39c12" id="btn-open-stats">Voir Stats</button>
                 <button class="btn-action" id="btn-open-retrait" style="background:#e74c3c">Gérer Joueurs (Abandon)</button>
                 <button class="btn-action btn-projection" style="background:#8e44ad; font-weight:bold;" id="btn-open-proj">📺 Vidéoprojecteur</button>
@@ -238,6 +246,7 @@ class TournoiPage {
             window.open('affichage.html', 'AffichageTournoiV3', 'menubar=no,toolbar=no,location=no,status=no');
         });
         
+        header.querySelector('#btn-sync-scores').addEventListener('click', () => this.syncFromRemote());
         header.querySelector('#btn-open-stats').addEventListener('click', () => this.openStatsModal());
         header.querySelector('#btn-open-retrait').addEventListener('click', () => this.openRetraitModal());
         header.querySelector('#btn-open-classement').addEventListener('click', () => this.openClassementModal());
@@ -305,7 +314,7 @@ class TournoiPage {
         // Init logic for Timer using utils/Timer.js
         this.timer = new Timer({
             duration: 8 * 60, // 8m
-            soundPath: 'assets/sons/buzzer.wav', // Copied to test environment
+            soundPath: '/assets/sons/buzzer.wav', // Mettre le chemin absolu depuis /public
             onTick: (remaining) => this.updateTimerDisplay(remaining),
             onStateChange: (state) => this.updateTimerUIState(state)
         });
@@ -544,7 +553,7 @@ class TournoiPage {
                                 </div>
                             </div>
                             <div class="score-container">
-                                <div class="match-score">${scoreDisplay}</div>
+                                <div class="match-score">${match.termine || match.lockedByPublic ? '<span style="font-size: 0.8em; margin-right: 5px;" title="Verrouillé">🔒</span>' : ''}${scoreDisplay}</div>
                             </div>
                         </div>
                         <div class="match-status">
@@ -685,6 +694,11 @@ class TournoiPage {
     // ─── GESTION DE LA MODAL DE SCORE ──────────────────────────────────────────
 
     openScoreModal(pouleId, match, n1, n2, n3, n4) {
+        if ((match.termine || match.lockedByPublic) && match.score1 !== null) {
+            if (!confirm("Ce score a déjà été validé/saisi. Voulez-vous forcer sa modification ?")) {
+                return;
+            }
+        }
         this.editingPoule = this.poules.find(p => p.id === pouleId);
         this.editingMatch = match;
         
@@ -715,6 +729,7 @@ class TournoiPage {
             
             this.editingMatch.score1 = isNaN(s1) ? 0 : s1;
             this.editingMatch.score2 = isNaN(s2) ? 0 : s2;
+            this.editingMatch.termine = true; // IMPORTANT : L'admin verrouille aussi le match
             
             this.closeModal();
             this.renderAll(); // Met à jour la grille, et ça déclenchera _saveStateToDB
@@ -916,10 +931,13 @@ class TournoiPage {
                 // On limite aux matchs terminés avec un score
                 if (!tour.matchs) return;
                 tour.matchs.forEach(match => {
-                    if (match.score1 === undefined || match.score2 === undefined || match.score1 === '' || match.score2 === '') return;
+                    if (match.score1 == null || match.score2 == null || match.score1 === '' || match.score2 === '') return;
 
                     const score1 = parseInt(match.score1, 10);
                     const score2 = parseInt(match.score2, 10);
+                    
+                    if (isNaN(score1) || isNaN(score2)) return;
+
                     const diff = Math.abs(score1 - score2);
 
                     const isEgalite = diff <= 2;
@@ -1221,6 +1239,82 @@ class TournoiPage {
             timestamp: Date.now()
         };
         localStorage.setItem('affichage_v3_data', JSON.stringify(data));
+        
+        // Push aussi au serveur pour les WebSockets distants
+        // On ne le fait que si l'état a changé (via un hash ou juste timestamp) ou toutes les secondes max ?
+        // Pour éviter de spammer on pourrait faire du différentiel, mais c'est très léger
+        if (window.location.protocol !== 'file:') {
+            fetch('/api/affichage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).catch(e => {});
+        }
+    }
+
+    async syncFromRemote(isSilent = false) {
+        if (!isSilent) console.log("Rafraîchissement des scores depuis le serveur...");
+        const syncBtn = document.getElementById('btn-sync-scores');
+        if (syncBtn && !isSilent) {
+            syncBtn.disabled = true;
+            syncBtn.textContent = 'Actualisation...';
+        }
+
+        try {
+            const resp = await fetch('/api/scores');
+            if (resp.ok) {
+                const lockedScores = await resp.json();
+                let hasChanges = false;
+                
+                // Mettre sous forme de dictionnaire pour accès rapide
+                const scoresMap = {};
+                lockedScores.forEach(r => { scoresMap[r.id] = r; });
+
+                if (this.poules && this.poules.length > 0) {
+                    for (let lPoule of this.poules) {
+                        if (lPoule.tours) {
+                            for (let p = 0; p < lPoule.tours.length; p++) {
+                                const lTour = lPoule.tours[p];
+                                if (lTour.matchs) {
+                                    lTour.matchs.forEach(lMatch => {
+                                        // Gérer le format d'id défini par le système
+                                        const matchIdStr = lMatch.id || `${lPoule.id}_${p}_${(lMatch.equipe1||[]).map(j=>j.id).join('-')}-${(lMatch.equipe2||[]).map(j=>j.id).join('-')}`;
+                                        const remoteScore = scoresMap[matchIdStr];
+                                        
+                                        if (remoteScore) {
+                                            // on met à jour en local -> classe Match : score1 et score2
+                                            if (lMatch.score1 !== remoteScore.score_equipe1 || lMatch.score2 !== remoteScore.score_equipe2 || !lMatch.termine) {
+                                                lMatch.score1 = remoteScore.score_equipe1;
+                                                lMatch.score2 = remoteScore.score_equipe2;
+                                                lMatch.termine = true;
+                                                hasChanges = true;
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (hasChanges) {
+                    // Force the re-rendering of the UI with new scores
+                    this.renderAll();
+                }
+            } else {
+                if (!isSilent) console.error("Erreur lors de la synchronisation", resp.status);
+            }
+        } catch (e) {
+            if (!isSilent) {
+                console.error("Impossible de joindre le serveur pour actualiser", e);
+                alert("Erreur de connexion au serveur.");
+            }
+        } finally {
+            if (syncBtn && !isSilent) {
+                syncBtn.disabled = false;
+                syncBtn.textContent = '🔄 Actualiser (Scores Publics)';
+            }
+        }
     }
 
     async _saveStateToDB() {

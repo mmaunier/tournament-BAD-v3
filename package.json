@@ -1,0 +1,27 @@
+{
+  "name": "tournament-bad-v3",
+  "version": "3.1.0",
+  "description": "[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](CHANGELOG.md) [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmaunier/tournament-BAD-v3.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mmaunier/tournament-BAD-v3/issues"
+  },
+  "homepage": "https://github.com/mmaunier/tournament-BAD-v3#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3",
+    "sqlite3": "^6.0.1"
+  }
+}

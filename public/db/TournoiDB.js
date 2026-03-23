@@ -35,12 +35,12 @@ class TournoiDB {
     // ─── Initialisation ───────────────────────────────────────────────────────────
 
     /**
-     * Charge le cache depuis localStorage (ou initialise un état vide).
+     * Charge le cache depuis le serveur.
      * À appeler au démarrage avant toute autre méthode.
      * @returns {Promise<void>}
      */
     async init() {
-        const stored = this._load();
+        const stored = await this._load();
         if (stored) {
             this._cache.tournoi = stored.tournoi  ?? this._defaultTournoi();
             this._cache.poules  = stored.poules   ?? [];
@@ -51,29 +51,60 @@ class TournoiDB {
             this._cache.poules  = [];
             this._cache.tours   = [];
             this._nextId        = 1;
-            this._persist();
+            await this._persist();
         }
     }
 
     // ─── Accesseurs de bas niveau ─────────────────────────────────────────────────
 
-    _load() {
+    async _load() {
+        try {
+            const res = await fetch('/api/tournoi');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.version) return data;
+            }
+        } catch (e) {
+            console.warn('[TournoiDB] Serveur indisponible, tentative de lecture locale:', e);
+        }
+        
+        // Fallback local en cas d'erreur serveur
         try {
             const raw = localStorage.getItem(TournoiDB.STORAGE_KEY);
             return raw ? JSON.parse(raw) : null;
         } catch { return null; }
     }
 
-    _persist() {
+    async _persist() {
+        const dataToSave = {
+            version: TournoiDB.VERSION,
+            tournoi: this._cache.tournoi,
+            poules:  this._cache.poules,
+            tours:   this._cache.tours,
+            nextId:  this._nextId
+        };
+        
+        // 1. Sauvegarde locale (Sécurité)
         try {
-            localStorage.setItem(TournoiDB.STORAGE_KEY, JSON.stringify({
-                version: TournoiDB.VERSION,
-                tournoi: this._cache.tournoi,
-                poules:  this._cache.poules,
-                tours:   this._cache.tours,
-                nextId:  this._nextId
-            }));
-        } catch (e) { console.warn('[TournoiDB] Persistance impossible :', e); }
+            localStorage.setItem(TournoiDB.STORAGE_KEY, JSON.stringify(dataToSave));
+        } catch (e) { console.warn('[TournoiDB] Persistance locale impossible :', e); }
+
+        // 2. Sauvegarde sur le serveur principal
+        const token = localStorage.getItem('adminToken');
+        if (!token) return; // Si on n'a pas déclenché la zone Admin, on ne peut pas écraser la base serveur
+
+        try {
+            await fetch('/api/tournoi', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+                body: JSON.stringify(dataToSave)
+            });
+        } catch (e) {
+            console.error('[TournoiDB] Erreur lors de la sauvegarde sur le serveur :', e);
+        }
     }
 
     _newId() { return this._nextId++; }

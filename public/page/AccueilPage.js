@@ -54,6 +54,19 @@ class AccueilPage {
 
         this._bindEvents();
         this._renderColumns();
+
+        // Vidage automatique de la base de données au chargement de la page d'accueil (nouveau tournoi)
+        this._autoResetDatabase();
+    }
+
+    async _autoResetDatabase() {
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+            try {
+                await fetch('/api/tournoi', { method: 'DELETE', headers: { 'Authorization': token } });
+            } catch (ignored) {}
+        }
+        localStorage.removeItem('tournoi-bad-v3');
     }
 
     // ─── Construction du HTML statique ───────────────────────────────────────────
@@ -79,6 +92,13 @@ class AccueilPage {
                         <span class="btn-menu-text">Menu</span>
                     </button>
                     <div class="dropdown-menu" id="dropdownMenu">
+                        <div class="dropdown-item" data-action="settings">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                            Paramètres
+                        </div>
                         <div class="dropdown-item" data-action="import-joueurs">
                             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -219,6 +239,7 @@ class AccueilPage {
             d.mainMenu.classList.remove('open');
             const action = item.dataset.action;
             if (action === 'import-joueurs') this._importerJoueurs();
+            else if (action === 'settings') this._openSettingsModal();
             else if (action === 'reset')      this._reset();
         });
 
@@ -423,8 +444,26 @@ class AccueilPage {
         this._renderColumns();
     }
 
-    _reset() {
-        if (!confirm('Réinitialiser toutes les poules et tous les joueurs ?')) return;
+    async _reset() {
+        if (!confirm('Réinitialiser toutes les poules et tous les joueurs ?\nCela effacera également le tournoi en cours !')) return;
+        
+        // 1. Réinitialiser la base de données serveur
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+            try {
+                await fetch('/api/tournoi', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': token }
+                });
+            } catch (err) {
+                console.error("Erreur reset serveur:", err);
+            }
+        }
+        
+        // 2. Vider le localStorage local (cache admin)
+        localStorage.removeItem('tournoi-bad-v3');
+
+        // 3. Réinitialiser l'UI
         this.state.poules  = [{ id: 1, nom: 'Poule 1', joueurs: [], config: AccueilPage._defaultConfig() }];
         this.state.nextId  = 2;
         this._renderColumns();
@@ -621,6 +660,9 @@ class AccueilPage {
             }
 
             this._renderColumns();
+            // Important : nettoyer la base de données après un import
+            this._autoResetDatabase();
+            
             const total = this.state.poules.reduce((s, p) => s + p.joueurs.length, 0);
             alert(`✅ Import terminé : ${sheets.length} poule(s), ${total} joueur(s).`);
         } catch (err) {
@@ -1074,6 +1116,15 @@ class AccueilPage {
 
         // 1. Initialiser le tournoi et générer les tours pour chaque poule
         const db = new window.TournoiDB();
+        
+        // Vider le serveur complètement avant de relancer (efface les anciens scores et le JSON)
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+            try {
+                await fetch('/api/tournoi', { method: 'DELETE', headers: { 'Authorization': token } });
+            } catch (ignored) {}
+        }
+        
         await db.init();
         
         // Exporter manuellement l'état pour écraser complètement
@@ -1114,3 +1165,69 @@ class AccueilPage {
 
 // Export global
 window.AccueilPage = AccueilPage;
+
+Object.assign(AccueilPage.prototype, {
+    _openSettingsModal() {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        
+        const box = document.createElement('div');
+        box.className = 'modal-box';
+        box.addEventListener('click', (e) => e.stopPropagation());
+
+        const title = document.createElement('h2');
+        title.className = 'modal-title';
+        title.textContent = 'Paramètres Globaux';
+        box.appendChild(title);
+
+        const formGroup = this._formGroup('Nouveau mot de passe Admin', 'adminPwd');
+        const input = document.createElement('input');
+        input.type = 'password';
+        input.id = 'adminPwd';
+        input.className = 'form-input';
+        formGroup.appendChild(input);
+        box.appendChild(formGroup);
+
+        const actions = document.createElement('div');
+        actions.className = 'modal-actions';
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'btn-modal btn-modal-cancel';
+        cancelBtn.textContent = 'Annuler';
+        cancelBtn.onclick = () => overlay.remove();
+        
+        const validateBtn = document.createElement('button');
+        validateBtn.type = 'button';
+        validateBtn.className = 'btn-modal btn-modal-validate';
+        validateBtn.textContent = 'Enregistrer';
+        validateBtn.onclick = async () => {
+            const pwd = input.value;
+            if (!pwd) { alert('Mot de passe vide.'); return; }
+            try {
+                const token = localStorage.getItem('adminToken');
+                const res = await fetch('/api/settings/password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': token },
+                    body: JSON.stringify({ newPassword: pwd })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Mot de passe mis à jour avec succès.');
+                    overlay.remove();
+                } else {
+                    alert('Erreur: ' + data.error);
+                }
+            } catch (e) {
+                alert('Erreur réseau.');
+            }
+        };
+
+        actions.appendChild(cancelBtn);
+        actions.appendChild(validateBtn);
+        box.appendChild(actions);
+        overlay.appendChild(box);
+        
+        document.body.appendChild(overlay);
+        input.focus();
+    }
+});

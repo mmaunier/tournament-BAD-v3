@@ -1,11 +1,18 @@
 # Générateur de Tournois de Badminton en double V3
 
-[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Application web moderne pour la gestion complète de tournois de badminton en double (ronde suisse). Conçue pour organiser des tournois de manière efficace et équitable, avec un système de handicap intégré, la prise en charge des multi-poules, la notion de joueurs fantômes et de multi-salles. 
 
 > 📋 **Bêta-testeurs** : consultez le [Guide de Bêta-Test](BETA_TESTING.md) pour les instructions de test.
+
+## ✨ Nouveautés de la Version 3.1 (Architecture Serveur & Temps Réel)
+
+La version 3.1 franchit un cap majeur avec l'arrivée d'un **véritable backend (Node.js/SQLite)** assurant une robustesse à toute épreuve pour vos compétitions :
+- **Ne perdez plus vos données** : Les classements et l'historique sont sauvegardés en une base de données locale.
+- **Saisie par les joueurs** : Les smartphones / tablettes du public accèdent à une vue leur permettant de saisir leur score.
+- **Temps réel intégral** : WebSockets intégrés. Dès qu'un joueur saisit les points, l'affichage géant s'actualise nativement.
 
 ## ✨ Nouveautés de la Version 3.0
 
@@ -42,40 +49,52 @@ La version 3 a été **entièrement refaite** pour supporter des configurations 
 
 ## 🏗️ Architecture
 
-```
+```text
 tournament-BAD-v3/
-├── index.html           # Point d'entrée (Accueil et paramétrage)
-├── tournoi.html         # Page de gestion et suivi du tournoi
-├── affichage.html       # Page Projecteur / Live
-├── classement.html      # Vue finale et impression
-├── assets/
-│   ├── fonts/           # Polices locales 
-│   ├── images/
-│   │   └── favicon.ico  # Icône
-│   └── sons/
-│       └── buzzer.wav   # Son de fin de timer
-├── css/                 # Feuilles de style par page et globales
-├── ext/                 # Dépendances externes (xlsx)
-├── utils/               # Générateurs V3 (Rondes, rotation, Timer)
-├── page/                # Logique de Vues (Classes DOM)
-└── db/                  # Gestionnaire IndexedDB
+├── server.js            # Point d'entrée Serveur (Serveur Web Express)
+├── db.js                # Contrôleur SQLite et Temps Réel (Socket.io)
+├── package.json         # Configuration et dépendances Node.js
+├── tournoi.sqlite       # Base de données locale (générée automatiquement au lancement)
+├── public/              # Fichiers Clients servis par le serveur web (Frontend)
+│   ├── index.html       # Accueil (Création tournoi)
+│   ├── html/            # Pages détaillées
+│   │   ├── tournoi.html    # Tableau de bord Administrateur
+│   │   ├── affichage.html  # Vue Vidéoprojecteur (Actualisée en Wi-Fi)
+│   │   ├── classement.html # Classement final statique
+│   │   └── public.html     # Vue Smartphone pour les joueurs
+│   ├── css/             # Feuilles de styles adaptées
+│   ├── page/            # Contrôleurs DOM et UI (Classes JS)
+│   ├── utils/           # Générateurs V3 (Rondes, Rotations, Timer)
+│   ├── db/              # Accès API et Socket depuis le navigateur
+│   └── assets/          # Icônes, Fonts, Sons
+└── README.md
 ```
 
-## 🚀 Installation
+## 🚀 Installation & Démarrage
 
 ```bash
+# 1. Cloner le projet
 git clone https://github.com/mmaunier/tournament-BAD-v3
 cd tournament-BAD-v3
+
+# 2. Installer les dépendances Serveur
+npm install
+
+# 3. Démarrer l'application
+node server.js
 ```
 
-Aucune dépendance npm requise. L'application fonctionne directement dans le navigateur, même sans connexion internet.
+Le serveur démarrera localement (généralement sur le port `3000`).
+L'application est **entièrement autonome** et fonctionnera sans connexion internet, créant sa propre base de données `tournoi.sqlite`.
 
 ## 📖 Utilisation
 
-1. Ouvrez `index.html` dans votre navigateur (ou servez via un serveur local).
-2. Configurez le tournoi ou importez vos joueurs .xlsx. 
-3. Validez l'accueil pour permuter automatiquement sur `tournoi.html`.
-4. Ouvrez `affichage.html` dans un nouvel onglet, et déplacez-le sur votre vidéoprojecteur.
+1. Ouvrez l'interface d'administration à l'adresse indiquée dans la console (`http://localhost:3000`).
+2. Configurez le tournoi ou importez vos joueurs .xlsx.
+3. Communiquez l'adresse IP de l'ordinateur central (ex: `http://192.168.1.50:3000`) aux joueurs pour la saisie smartphone.
+4. Lancez un onglet `http://localhost:3000/api/affichage` (ou via la page) sur le vidéoprojecteur.
+
+---
 
 ## 🙏 Crédits
 Ce projet est développé par mmaunier, et est originellement basé sur [orykami/badminton-tournament](https://github.com/orykami/badminton-tournament) avec une refonte complète.

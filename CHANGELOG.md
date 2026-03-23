@@ -5,6 +5,23 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/).
 
+## [3.1.0] - 2026-03-23
+
+### Added
+- **Architecture Client/Serveur** : Migration de l'application vers un véritable backend Node.js (Express & API REST) et une base de données locale (SQLite). Fini la perte de données à la fermeture du navigateur de l'administrateur !
+- **Saisie des scores par smartphone (Joueurs)** : Page publique dédiée permettant aux joueurs de scanner un QR Code (ou d'aller sur une URL) pour rentrer eux-mêmes leurs scores en fin de match, réduisant la charge de travail côté table de marque.
+- **Temps Réel avec WebSockets** : Intégration de Socket.io. Tous les écrans (Administrateur, Affichage Vidéoprojecteur, Classements en direct, Smartphones) se rafraichissent instantanément à la seconde même où un score est validé. Plus de délais de polling frustrants.
+- **Console d'Administration** : 
+  - Authentification sécurisée par mot de passe (paramètres modifiables en direct).
+  - Contrôle et gestion de conflit en temps-réel (l'admin peut forcer un score saisi par un joueur).
+  - Icône de cadenas "🔒" affichée dès qu'un score est verrouillé par la table de marque ou le public.
+- **Auto-nettoyage d'interface** : Ajout fonctionnel du focus automatique sur les champs chiffrés des classements et sur les écrans portables (Mobile First).
+
+### Fixed
+- **Correction des calculs de variables "NaN"** : Les stats `Ratio Diff` et `Points` ne buggent plus avec l'affichage de valeurs indéfinies au cours d'une manche incomplète.
+- **Synchronisation UI Responsive** : Correction de l'alignement flexbox pour la saisie des scores face à des noms d'équipe trop longs.
+- **Sécurité et File d'attente (Race conditions)** : Résolution de bugs d'écrasement de données lorsqu'une tablette et l'admin saisissaient un match concurrentiellement.
+
 ## [3.0.0] - 2026-03-22
 
 ### Added

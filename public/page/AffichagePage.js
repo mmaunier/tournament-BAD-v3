@@ -11,17 +11,35 @@ class AffichagePage {
             }
         });
 
-        // Polling en cas de protocol file://
-        setInterval(() => {
-            const raw = localStorage.getItem('affichage_v3_data');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (!this.data || this.data.timestamp !== parsed.timestamp) {
-                    this.data = parsed;
+        // WebSockets si disponible
+        if (window.io) {
+            const socket = io();
+            socket.on('affichage_updated', (newData) => {
+                this.data = newData;
+                this.renderContent();
+            });
+            // Récupérer l'état initial
+            fetch('/api/affichage').then(r => r.json()).then(data => {
+                if (data.mode) {
+                    this.data = data;
                     this.renderContent();
+                } else {
+                    this.loadData();
                 }
-            }
-        }, 150);
+            }).catch(e => this.loadData());
+        } else {
+            // Polling en cas de protocol file://
+            setInterval(() => {
+                const raw = localStorage.getItem('affichage_v3_data');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (!this.data || this.data.timestamp !== parsed.timestamp) {
+                        this.data = parsed;
+                        this.renderContent();
+                    }
+                }
+            }, 1000);
+        }
 
         this.updateRealViewportHeight();
         window.addEventListener('resize', () => this.updateRealViewportHeight());
@@ -32,11 +50,55 @@ class AffichagePage {
         document.documentElement.style.setProperty('--real-vh', `${realVh}px`);
     }
 
-    loadData() {
+    async loadData() {
         try {
-            this.data = JSON.parse(localStorage.getItem('affichage_v3_data') || 'null');
+            const res = await fetch('/api/tournoi');
+            const tournoiData = await res.json();
+            if (tournoiData && tournoiData.poules) {
+                // Formatting data similarly to what TournoiPage did
+                const terrainsCount = tournoiData.terrainsCount || 7;
+                let activeMatchs = [];
+                let byesList = [];
+
+                tournoiData.poules.forEach(poule => {
+                    const viewedRoundIndex = tournoiData.viewedRoundIndex || 0;
+                    const cTour = poule.tours ? poule.tours[viewedRoundIndex] : null;
+                    if(cTour) {
+                        if (cTour.matchs) {
+                            cTour.matchs.forEach(m => {
+                                activeMatchs.push({
+                                    pouleNom: poule.nom,
+                                    pouleColor: poule.colorIndex,
+                                    terrain: m.terrain,
+                                    equipe1: m.equipe1,
+                                    equipe2: m.equipe2,
+                                    score1: m.score1,
+                                    score2: m.score2,
+                                    termine: m.termine || m.lockedByPublic
+                                });
+                            });
+                        }
+                        if (cTour.byes) {
+                            byesList.push(...cTour.byes);
+                        }
+                    }
+                });
+
+                this.data = {
+                    timestamp: Date.now(),
+                    terrainsCount: terrainsCount,
+                    activeMatchs: activeMatchs,
+                    byes: byesList
+                };
+            } else {
+                this.data = JSON.parse(localStorage.getItem('affichage_v3_data') || 'null');
+            }
         } catch(e) {
-            this.data = null;
+            this.data = JSON.parse(localStorage.getItem('affichage_v3_data') || 'null');
+        }
+        
+        if (this.container) {
+            this.renderContent();
         }
     }
 

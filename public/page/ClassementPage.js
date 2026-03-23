@@ -17,6 +17,16 @@ class ClassementPage {
         // Structure de redistribution: un tableau de tableaux de joueurs
         this.repartitionPoules = [];
         setInterval(() => this._syncAffichage(), 1000);
+        
+        if (window.io) {
+            const socket = io();
+            socket.on('data_updated', async () => {
+                const oldHTML = this.container.innerHTML;
+                await this.loadData();
+                this._buildHTML();
+                this._attachEvents();
+            });
+        }
     }
 
     async render(container) {
@@ -75,10 +85,13 @@ class ClassementPage {
             poule.tours.forEach(tour => {
                 if (!tour.matchs) return;
                 tour.matchs.forEach(match => {
-                    if (match.score1 === undefined || match.score2 === undefined || match.score1 === '' || match.score2 === '') return;
+                    if (match.score1 == null || match.score2 == null || match.score1 === '' || match.score2 === '') return;
 
                     const score1 = parseInt(match.score1, 10);
                     const score2 = parseInt(match.score2, 10);
+                    
+                    if (isNaN(score1) || isNaN(score2)) return;
+
                     const diff = Math.abs(score1 - score2);
 
                     const isEgalite = diff <= 2;

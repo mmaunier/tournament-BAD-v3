@@ -19,7 +19,7 @@ class Timer {
         
         // Audio
         this.buzzerSound = null;
-        this.initAudio(options.soundPath || 'assets/sons/buzzer.wav');
+        this.initAudio(options.soundPath || '/assets/sons/buzzer.wav');
     }
 
     /**

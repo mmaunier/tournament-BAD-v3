@@ -1,0 +1,23 @@
+.button-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+    margin-bottom: 30px;
+}
+
+.size-large {
+    font-size: 1.2rem;
+    padding: 15px 25px;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #e9ecef;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}

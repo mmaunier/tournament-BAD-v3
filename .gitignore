@@ -46,3 +46,4 @@ old/
 # Fichiers temporaires
 *.tmp
 *.temp
+tournoi.sqlite

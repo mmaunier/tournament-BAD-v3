@@ -1,9 +1,10 @@
 /**
  * app.js — Point d'entrée V3
- * Instancie AccueilPage et la monte dans #app.
+ * Instancie GatePage par défaut.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    const page = new AccueilPage();
+    // Initialiser en affichant la Gate
+    const page = new GatePage();
     page.render(document.getElementById('app'));
 });
