@@ -149,7 +149,14 @@ body {
     display: flex;
     align-items: center;
     gap: var(--spacing-3);
-    min-width: 180px;
+    /* Retrait du min-width bloquant sur mobile */
+}
+
+@media (min-width: 768px) {
+    .header-left,
+    .header-right {
+        min-width: 180px;
+    }
 }
 
 .header-right { justify-content: flex-end; }
@@ -525,9 +532,16 @@ body {
 .form-select:focus { border-color: var(--color-primary); }
 
 /* ── Responsive ──────────────────────────────────────────────── */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
     .header-main-title { font-size: var(--font-size-xl); }
     .btn-menu-text { display: none; }
+    
+    /* On resserre l'entête central pour ne pas pousser les blocs latéraux hors écran */
+    .header { padding: var(--spacing-2); }
+    .header-left, .header-right { gap: var(--spacing-1); }
+    
+    /* Ajustement de la taille du titre selon l'espace restant */
+    .header-center { flex: 1; padding: 0 10px; }
 }
 
 .hidden { display: none; }

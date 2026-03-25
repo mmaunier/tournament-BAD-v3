@@ -5,6 +5,13 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/).
 
+## [3.1.2] - 2026-03-25
+
+### Fixed
+- **Saisie par QR Code (Smartphones)** : Correction d'un bug d'affichage empêchant le bon nom des poules d'apparaître lorsqu'un smartphone était connecté avant le lancement du tournoi par l'administrateur.
+- **Saisie par QR Code (Smartphones)** : Correction permettant la disparition propre des "Poule(s)" sur l'écran si l'administrateur vide intégralement le tournoi pour le recommencer.
+- **Affichage Mobile / Responsive** : Ajustement css (retrait d'un `min-width` bloquant) pour empêcher la barre du menu de disparaître en cas d'affichage sur un écran de smartphone très étroit ou de redimensionnement de fenêtre extrême.
+
 ## [3.1.1] - 2026-03-25
 
 ### Documentation

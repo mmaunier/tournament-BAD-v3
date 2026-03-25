@@ -1,6 +1,6 @@
 # Générateur de Tournois de Badminton en double V3
 
-[![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.1.2-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Application web moderne pour la gestion complète de tournois de badminton en double (ronde suisse). Conçue pour organiser des tournois de manière efficace et équitable, avec un système de handicap intégré, la prise en charge des multi-poules, la notion de joueurs fantômes et de multi-salles. 

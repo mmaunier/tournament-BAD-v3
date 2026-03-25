@@ -82,9 +82,28 @@ class PublicPage {
 
             if (oldIds !== newIds) {
                 // S'il y a une différence (un match a été validé ou ajouté)
+                
+                // Mettre à jour la liste des poules pour avoir leurs bons noms
+                try {
+                    const resTournoi = await fetch('/api/tournoi');
+                    if (resTournoi.ok) {
+                        const dataTournoi = await resTournoi.json();
+                        if (dataTournoi.poules) {
+                            dataTournoi.poules.forEach(p => {
+                                this.poulesMap[p.id.toString()] = p.nom;
+                            });
+                        }
+                    }
+                } catch(err) {}
                 this.allMatchs = newMatchs;
 
                 // On actualise la liste selon là où se trouve l'utilisateur
+                // Si la liste est vidée (tournoi reset), on réinitialise l'état
+                if (this.allMatchs.length === 0) {
+                    this.currentPouleId = null;
+                    this.currentTour = null;
+                }
+
                 if (this.currentPouleId && this.currentTour) {
                     this.renderMatchs();
                 } else {
@@ -139,6 +158,11 @@ class PublicPage {
         if (!this.currentPouleId) {
             // Trouver les poules qui ont des matchs en attente
             const poulesIds = [...new Set(this.allMatchs.map(m => m.poule_id))];
+            
+            if (poulesIds.length === 0) {
+                selectionArea.innerHTML = "<p>Aucun match en attente de score actuellement.</p>";
+                return;
+            }
             
             let html = '<h2>1. Choisissez la Poule :</h2><div class="button-grid">';
             poulesIds.forEach(id => {
