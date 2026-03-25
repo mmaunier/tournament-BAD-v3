@@ -1,6 +1,6 @@
 # Générateur de Tournois de Badminton en double V3
 
-[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Application web moderne pour la gestion complète de tournois de badminton en double (ronde suisse). Conçue pour organiser des tournois de manière efficace et équitable, avec un système de handicap intégré, la prise en charge des multi-poules, la notion de joueurs fantômes et de multi-salles. 
@@ -91,8 +91,18 @@ L'application est **entièrement autonome** et fonctionnera sans connexion inter
 
 1. Ouvrez l'interface d'administration à l'adresse indiquée dans la console (`http://localhost:3000`).
 2. Configurez le tournoi ou importez vos joueurs .xlsx.
-3. Communiquez l'adresse IP de l'ordinateur central (ex: `http://192.168.1.50:3000`) aux joueurs pour la saisie smartphone.
+3. Communiquez l'adresse IP de l'ordinateur central (ex: `http://192.168.1.50:3000`) aux joueurs pour la saisie smartphone via le réseau local.
 4. Lancez un onglet `http://localhost:3000/api/affichage` (ou via la page) sur le vidéoprojecteur.
+
+### 🌐 Accessibilité depuis Internet (Smartphones en 4G) avec ngrok
+Si votre gymnase ne dispose pas d'un réseau Wi-Fi couvrant tout l'espace, vous pouvez rendre votre serveur local accessible sur internet pour les joueurs en 4G, via **ngrok** :
+1. Créez un compte gratuit sur [ngrok.com](https://ngrok.com/) et installez l'outil.
+2. Authentifiez-vous (la première fois) : `ngrok config add-authtoken VOTRE_TOKEN`.
+3. Lancez votre serveur (`node server.js`), puis dans un autre terminal, lancez le tunnel :
+   ```bash
+   ngrok http 3000 --domain=votre-domaine-perso.ngrok-free.app
+   ```
+4. **Générez un QR Code** pour vos joueurs avec cette URL (sous Linux, l'outil `qrencode` est très pratique : `qrencode -s 10 -o qr_joueurs.png "https://votre-domaine-perso.ngrok-free.app"`). Vos joueurs pourront scanner ce code, accéder au site et saisir leurs scores instantanément en 4G !
 
 ---
 

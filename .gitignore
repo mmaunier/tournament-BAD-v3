@@ -41,7 +41,7 @@ build/
 # Project specific
 # ===================
 # Anciennes versions et fichiers de développement
-old/
+qrcode/
 
 # Fichiers temporaires
 *.tmp

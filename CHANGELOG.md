@@ -5,6 +5,11 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et ce projet adhère au [Versionnement Sémantique](https://semver.org/lang/fr/).
 
+## [3.1.1] - 2026-03-25
+
+### Documentation
+- Bêta-Testing & Déploiement : Ajout d'un guide spécifique dans le README documentant l'utilisation du tunnel réseau **Ngrok** pour contourner les problèmes de WiFi locaux et offrir l'application aux smartphones en 4G.
+
 ## [3.1.0] - 2026-03-23
 
 ### Added
